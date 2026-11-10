@@ -86,7 +86,7 @@ def run_one_scenario(scenario: dict) -> dict:
                 lambda: approx_implied_vol(proxy, k, T, config.N_GL_MIXED_APPROX, config.GAUSS_INTEGRAL_B),
                 config.N_RUNTIME_RUNS))
             runtimes["Reference"].append(median_runtime_ms(
-                lambda: reference_for_scenario(scenario, proxy, T, k),
+                lambda: reference_for_scenario(scenario, proxy, T, log_moneyness),
                 config.N_RUNTIME_RUNS_REFERENCE))
 
     max_err_by_label = {}

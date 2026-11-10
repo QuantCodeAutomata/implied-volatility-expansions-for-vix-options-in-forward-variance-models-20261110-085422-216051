@@ -96,15 +96,18 @@ class Proposition2Factors(NamedTuple):
 
 
 def proposition2_factors(proxy: MixedProxy, j: int, A: float) -> Proposition2Factors:
-    """j in {0, 1} (0-indexed here for j in {1,2} of the paper); j' is the other index."""
-    jp = 1 - j
-    sign = 1.0 if j == 0 else -1.0  # (-1)^j in the paper's 1-indexed convention (j=1 -> +1, j=2 -> -1)
-    mu_j, mu_jp = proxy.mu[j], proxy.mu[jp]
-    sig_j, sig_jp = proxy.sigma[j], proxy.sigma[jp]
-    lam_j, lam_jp = proxy.lam[j], proxy.lam[jp]
-    x_Pj = mu_j / 2.0 + sig_j ** 2 / 8.0
-    Delta_sigma_Pj = sign * (proxy.sigma[0] - proxy.sigma[1])
-    C_j = (lam_j / lam_jp) ** (-sign) * np.exp(-sign * (proxy.mu[0] - proxy.mu[1]) + 0.5 * sig_j * Delta_sigma_Pj)
+    """Proposition 2 (Eq. 38): j in {0, 1} is the 0-indexed counterpart of the
+    paper's j in {1, 2}. All formulas use the literal components 1 and 2
+    (proxy.lam/mu/sigma[0] and [1]) with the sign s := (-1)^j_paper, i.e.
+    s = -1 for j=0 (paper j=1) and s = +1 for j=1 (paper j=2)."""
+    s = -1.0 if j == 0 else 1.0  # (-1)^j in the paper's 1-indexed convention
+    lam1, lam2 = proxy.lam[0], proxy.lam[1]
+    mu1, mu2 = proxy.mu[0], proxy.mu[1]
+    sig1, sig2 = proxy.sigma[0], proxy.sigma[1]
+    sig_j = proxy.sigma[j]
+    x_Pj = proxy.mu[j] / 2.0 + sig_j ** 2 / 8.0
+    Delta_sigma_Pj = s * (sig1 - sig2)
+    C_j = (lam1 / lam2) ** s * np.exp(s * (mu1 - mu2) + 0.5 * sig_j * Delta_sigma_Pj)
     A_j = A - sig_j / 2.0
     return Proposition2Factors(x_Pj, Delta_sigma_Pj, C_j, A_j)
 
@@ -297,15 +300,17 @@ def explicit_expansion_iv(
         ) if N >= 1 else 0.0
 
         if not extended:
+            # Eq. (60): Delta_sigma_{theta,j,N}(k) = sqrt(lambda_j)*e^{x_Pj} /
+            # (e^{x_theta,j} * sqrt(T)) * sum_n sum_i omega_{n,j}^{(i)} He_{n-1}(A_j),
+            # equivalently sqrt(lambda_j)*e^{x_Pj}*phi(A_j) / Vega(x_theta,j, k_theta,j,
+            # sigma_tilde_Pj/2) since Vega(x_theta,j,k_theta,j,sigma_tilde_Pj/2) =
+            # e^{x_theta,j}*sqrt(T)*phi(A_j) (d_1(x_theta,j,k_theta,j,sigma_tilde_Pj/2)=-A_j).
+            # The shift residual R_{theta,j}^{shift} in (54)/(59) is explicitly neglected
+            # when forming (60), as stated just above (60); it must not be added here.
             x_theta_j = ln_F_P + theta * delta_j
             k_theta_j = kk - (1.0 - theta) * delta_j
             vg = bs_vega(x_theta_j, k_theta_j, sigma_tilde_Pj / 2.0, T)
-            correction_num = (
-                (F_P - np.exp(x_theta_j)) * norm.cdf(-A_j)
-                + (np.exp(k_theta_j) - np.exp(kk)) * norm.cdf(-A)
-                + np.sqrt(proxy.lam[j]) * np.exp(x_Pj) * phi_Aj * hermite_sum
-            )
-            delta_sigma = correction_num / vg
+            delta_sigma = (np.sqrt(proxy.lam[j]) * np.exp(x_Pj) * phi_Aj * hermite_sum) / vg
         else:
             vg = bs_vega(ln_F_P, kk, sigma_tilde_Pj / 2.0, T)
             delta_sigma = (
