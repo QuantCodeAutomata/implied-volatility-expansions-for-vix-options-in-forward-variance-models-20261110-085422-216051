@@ -5,12 +5,12 @@ in Forward Variance Models".
 
 All numbers below are read from the JSON files saved in this directory by the
 final run of each experiment script (`python -m exp.<name>`). Verdicts follow
-the thresholds stated in the task's comparison rule: **reproduced** if the
-value lies within a range the paper itself reports, or otherwise within 10%
-of the paper's value with the same sign and the paper's qualitative claim
-holds; **not reproduced** if the difference is material (wrong sign, more
-than 50% off, outside a stated range, or a qualitative claim — ranking,
-inequality, count — fails to hold); **partially reproduced** otherwise.
+this rule: **reproduced** if the value lies within a range the paper itself
+reports, or otherwise within 10% of the paper's value with the same sign and
+the paper's qualitative claim holds; **not reproduced** if the difference is
+material (wrong sign, more than 50% off, outside a stated range, or a
+qualitative claim — ranking, inequality, count — fails to hold); **partially
+reproduced** otherwise.
 
 ## Experiment 1 — Single-kernel implied volatility expansion: standard Bergomi model
 
@@ -165,13 +165,13 @@ extended-expansion errors exceeding 10^6-10^9% at the most extreme strikes.
   replications does not apply to this paper.
 - The paper references the closed-form expressions for the standard- and
   rough-Bergomi proxy parameters μ_P, σ_P to an external companion paper
-  ([10, Propositions 2.9 and 2.11]) rather than giving them in full in the
-  equations retrieved here; this repository instead computes μ_P, σ_P and the
+  ([10, Propositions 2.9 and 2.11]) rather than giving them in full in this
+  paper's own equations; this repository instead computes μ_P, σ_P and the
   correction coefficients γ_1, γ_2, γ_3 directly from their defining integrals
   (Proposition 1, Eq. 12 and Eq. 16) by Gauss-Legendre quadrature with the
   singularity-resolving substitution t = T(1-(1-s)^4), u = T + Δs^4 specified
-  in the methodology, which is mathematically equivalent and does not rely on
-  an unretrieved closed form.
+  in Section 2.3, which is mathematically equivalent and does not rely on the
+  companion paper's closed form.
 - Experiment 2's and 3-4's randomized quasi-Monte Carlo reference uses
   `scipy.stats.qmc.Sobol` with its default Owen scrambling (the paper does not
   specify the scrambling variant); 16 independent scrambles of 2^18 paths are
@@ -198,12 +198,12 @@ extended-expansion errors exceeding 10^6-10^9% at the most extreme strikes.
 
 ## Not reproduced
 
-Nothing required by the selected experiments is entirely unreproduced: every
-experiment produced its expected artifacts (JSON metric files under
-`results/`) and the metrics needed to compare against the paper's reported
-values. Two numeric items (Experiment 4 Scenario 4, Experiment 5 Scenario 3,
-both listed above) fall outside the paper's exact reported range and are
-recorded as deviations rather than as full reproductions; both remain of the
-same order of magnitude as the paper and do not contradict the paper's
-qualitative claims (monotonic accuracy loss with increasing component-volatility
-ratio; agreement between the Hermite expansion and Approx).
+Every one of the six experiments produced its expected artifacts (JSON metric
+files under `results/`) and the metrics needed to compare against the paper's
+reported values. Two numeric items (Experiment 4 Scenario 4, Experiment 5
+Scenario 3, both listed above) fall outside the paper's exact reported range
+and are recorded as deviations rather than as full reproductions; both
+remain of the same order of magnitude as the paper and do not contradict the
+paper's qualitative claims (monotonic accuracy loss with increasing
+component-volatility ratio; agreement between the Hermite expansion and
+Approx).
