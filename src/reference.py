@@ -39,11 +39,18 @@ class ReferenceResult(NamedTuple):
 
 
 def _bs_implied_vol_safe(call_price: float, log_moneyness: float, T: float, F: float) -> float:
-    from src.bs import implied_vol_from_call
+    from src.bs import bs_call, implied_vol_from_call
 
     x = np.log(F)
     k = x + log_moneyness
-    return float(implied_vol_from_call(call_price, x, np.array([k]), T)[0])
+    # Monte-Carlo / QMC sampling noise can occasionally push the deep
+    # out-of-the-money call-price estimate a hair below its no-arbitrage
+    # floor (the BS price at the lower bracket bound sigma=1e-6), which has
+    # no valid implied volatility. Clip to that floor plus a tiny margin;
+    # this only affects estimator noise at prices of order 1e-6 or smaller.
+    floor = float(bs_call(x, k, np.array([1e-6]), T)[0])
+    price = max(call_price, floor * (1.0 + 1e-10) + 1e-14)
+    return float(implied_vol_from_call(price, x, np.array([k]), T)[0])
 
 
 def _invert_vix_of_z(vix2_of_z, strike: float, lo: float, hi: float):
