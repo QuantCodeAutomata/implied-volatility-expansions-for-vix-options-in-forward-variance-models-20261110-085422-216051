@@ -1,0 +1,6 @@
+numpy>=1.26
+scipy>=1.14
+pandas>=2.2
+matplotlib>=3.8
+pytest>=7.4
+python-dotenv>=1.0
